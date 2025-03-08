@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events by Decode Strength</title>
+    <style>
+        :root {
+            --primary: #2C3E50;
+            --secondary: #E74C3C;
+            --light: #ECF0F1;
+            --dark: #2C3E50;
+            --success: #27AE60;
+            --warning: #F39C12;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--light);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .add-event-btn {
+            padding: 0.5rem 1.5rem;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .add-event-btn:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+        
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .event-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .event-type {
+            padding: 0.5rem;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .running { background-color: #3498DB; }
+        .crossfit { background-color: #9B59B6; }
+        .other { background-color: #34495E; }
+        
+        .event-details {
+            padding: 1.5rem;
+        }
+        
+        .event-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .event-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .event-price {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .free {
+            background-color: #E8F5E9;
+            color: var(--success);
+        }
+        
+        .paid {
+            background-color: #FFF3E0;
+            color: var(--warning);
+        }
+        
+        .event-date {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .event-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .event-link:hover {
+            background-color: #1a252f;
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .close-modal {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .submit-btn {
+            padding: 0.8rem 2rem;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        .submit-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        @media (max-width: 768px) {
+            .filters {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Events</h1>
+            <p class="tagline">Discover and share fitness events from around the community</p>
+            <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">by <span style="font-weight: 500;">Decode Strength</span></p>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div style="display: flex; justify-content: center; margin-bottom: 2rem;">
+            <a href="#" class="add-event-btn" id="openModalBtn" style="font-size: 1.2rem; padding: 0.7rem 2rem;">Add Event</a>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">All Events</button>
+                <button class="filter-btn" data-filter="running">Running</button>
+                <button class="filter-btn" data-filter="crossfit">Crossfit</button>
+                <button class="filter-btn" data-filter="other">Other</button>
+                
+                <button class="filter-btn" data-filter="free">Free</button>
+                <button class="filter-btn" data-filter="paid">Paid</button>
+            </div>
+        </div>
+        
+        <div class="events-grid" id="eventsGrid">
+            <!-- Event cards will be loaded from events.js -->
+        </div>
+    </main>
+    
+    <div class="modal" id="addEventModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModalBtn">&times;</button>
+                            <h2>Add New Event</h2>
+            <p>Submit your event for review. Once approved, it will appear on the website.</p>
+            
+            <form id="addEventForm">
+                <div class="form-group">
+                    <label for="eventName">Event Name</label>
+                    <input type="text" id="eventName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventType">Event Type</label>
+                    <select id="eventType" required>
+                        <option value="">Select type</option>
+                        <option value="running">Running</option>
+                        <option value="crossfit">Crossfit</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventPrice">Event Price</label>
+                    <select id="eventPrice" required>
+                        <option value="">Select price type</option>
+                        <option value="free">Free</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDate">Event Date</label>
+                    <input type="date" id="eventDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventLink">Event Link</label>
+                    <input type="url" id="eventLink" required placeholder="https://example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDescription">Description (optional)</label>
+                    <textarea id="eventDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="submitterName">Your Name</label>
+                    <input type="text" id="submitterName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="submitterEmail">Your Email</label>
+                    <input type="email" id="submitterEmail" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">Submit Event</button>
+            </form>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Decode Strength. All rights reserved.</p>
+            <p>Have questions? Contact us at <a href="mailto:info@decodestrength.com" style="color: white;">info@decodestrength.com</a></p>
+        </div>
+    </footer>
+    
+    <script>
+        // Sample event data (in production, this would load from a JSON file)
+        const events = [
+            {
+                id: 1,
+                title: "City Marathon 2025",
+                type: "running",
+                price: "paid",
+                date: "2025-05-15",
+                link: "https://example.com/marathon"
+            },
+            {
+                id: 2,
+                title: "Community Fitness Challenge",
+                type: "crossfit",
+                price: "free",
+                date: "2025-04-10",
+                link: "https://example.com/challenge"
+            },
+            {
+                id: 3,
+                title: "Yoga in the Park",
+                type: "other",
+                price: "free",
+                date: "2025-03-20",
+                link: "https://example.com/yoga"
+            },
+            {
+                id: 4,
+                title: "Trail Running Series",
+                type: "running",
+                price: "paid",
+                date: "2025-06-05",
+                link: "https://example.com/trail"
+            },
+            {
+                id: 5,
+                title: "CrossFit Championship",
+                type: "crossfit",
+                price: "paid",
+                date: "2025-07-12",
+                link: "https://example.com/championship"
+            },
+            {
+                id: 6,
+                title: "Charity 5K Run",
+                type: "running",
+                price: "paid",
+                date: "2025-04-25",
+                link: "https://example.com/charity"
+            }
+        ];
+        
+        // Render events
+        function renderEvents(eventsToRender) {
+            const eventsGrid = document.getElementById('eventsGrid');
+            eventsGrid.innerHTML = '';
+            
+            eventsToRender.forEach(event => {
+                const eventDate = new Date(event.date);
+                const formattedDate = eventDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                const eventCard = document.createElement('div');
+                eventCard.className = `event-card ${event.type} ${event.price}`;
+                eventCard.innerHTML = `
+                    <div class="event-type ${event.type}">${event.type.charAt(0).toUpperCase() + event.type.slice(1)}</div>
+                    <div class="event-details">
+                        <h3 class="event-title">${event.title}</h3>
+                        <div class="event-meta">
+                            <span class="event-price ${event.price}">${event.price.charAt(0).toUpperCase() + event.price.slice(1)}</span>
+                            <span class="event-date">${formattedDate}</span>
+                        </div>
+                        <a href="${event.link}" target="_blank" class="event-link">View Event</a>
+                    </div>
+                `;
+                
+                eventsGrid.appendChild(eventCard);
+            });
+        }
+        
+        // Filter events
+        function filterEvents() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            let activeFilters = ['all'];
+            
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Toggle active class
+                    if (filter === 'all') {
+                        filterBtns.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        activeFilters = ['all'];
+                    } else {
+                        document.querySelector('[data-filter="all"]').classList.remove('active');
+                        this.classList.toggle('active');
+                        
+                        if (this.classList.contains('active')) {
+                            // Add filter if it's not in the array
+                            if (!activeFilters.includes(filter)) {
+                                activeFilters.push(filter);
+                            }
+                            // Remove 'all' filter if it exists
+                            const allIndex = activeFilters.indexOf('all');
+                            if (allIndex > -1) {
+                                activeFilters.splice(allIndex, 1);
+                            }
+                        } else {
+                            // Remove filter if it's in the array
+                            const index = activeFilters.indexOf(filter);
+                            if (index > -1) {
+                                activeFilters.splice(index, 1);
+                            }
+                            // Add 'all' filter if no filters are active
+                            if (activeFilters.length === 0) {
+                                activeFilters = ['all'];
+                                document.querySelector('[data-filter="all"]').classList.add('active');
+                            }
+                        }
+                    }
+                    
+                    // Apply filters
+                    let filteredEvents;
+                    if (activeFilters.includes('all')) {
+                        filteredEvents = events;
+                    } else {
+                        filteredEvents = events.filter(event => {
+                            return activeFilters.includes(event.type) || activeFilters.includes(event.price);
+                        });
+                    }
+                    
+                    renderEvents(filteredEvents);
+                });
+            });
+        }
+        
+        // Modal functionality
+        function setupModal() {
+            const modal = document.getElementById('addEventModal');
+            const openModalBtn = document.getElementById('openModalBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            
+            openModalBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.classList.add('active');
+            });
+            
+            closeModalBtn.addEventListener('click', function() {
+                modal.classList.remove('active');
+            });
+            
+            window.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        }
+        
+        // Form submission
+        function setupForm() {
+            const form = document.getElementById('addEventForm');
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // In a real implementation, this would send the data to your backend
+                // which would create a pull request to add the event
+                
+                const formData = {
+                    title: document.getElementById('eventName').value,
+                    type: document.getElementById('eventType').value,
+                    price: document.getElementById('eventPrice').value,
+                    date: document.getElementById('eventDate').value,
+                    link: document.getElementById('eventLink').value,
+                    description: document.getElementById('eventDescription').value,
+                    submitter: {
+                        name: document.getElementById('submitterName').value,
+                        email: document.getElementById('submitterEmail').value
+                    }
+                };
+                
+                console.log('Form submitted:', formData);
+                
+                // Show success message
+                alert('Thank you! Your event has been submitted for review.');
+                
+                // Reset form and close modal
+                form.reset();
+                document.getElementById('addEventModal').classList.remove('active');
+            });
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderEvents(events);
+            filterEvents();
+            setupModal();
+            setupForm();
+        });
+    </script>
+</body>
+</html>
